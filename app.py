@@ -12,7 +12,7 @@ from groq import Groq
 load_dotenv()
 client = Groq()
 
-# --- Prompts (same as agent.py) ---
+# --- Prompts ---
 
 CLASSIFIER_PROMPT = """You are a support ticket triage agent. 
 
@@ -50,6 +50,19 @@ Write a helpful reply to the customer. Follow these rules:
 - Sign off as "Support Team"
 - Do NOT use markdown formatting, just plain text"""
 
+# --- Sample tickets ---
+
+SAMPLE_TICKETS = {
+    "😡 Angry login issue (HIGH)": """Hi, my name is Sarah Chen. I've been trying to log into my account for the past 2 hours and keep getting an "invalid credentials" error. I've reset my password twice but nothing works. I have a presentation tomorrow and I NEED access to my files urgently. If this isn't resolved today I'm cancelling my subscription.""",
+    
+    "💳 Billing discrepancy (MEDIUM)": """Hello, I'm James Parker. I noticed I was charged $49.99 on my last statement but I'm on the $29.99 plan. Could you look into this and issue a refund for the difference? Thanks.""",
+    
+    "💡 Feature request (LOW)": """Hey there! Love the product. Would be great if you could add dark mode to the mobile app. A few of us in the office have been talking about it. No rush, just a suggestion!""",
+    
+    "🔒 Security concern (HIGH)": """URGENT: I just received an email saying my account password was changed, but I didn't do this. I think someone has hacked into my account. My name is Priya Sharma and my account email is priya.s@email.com. Please lock my account immediately.""",
+    
+    "📦 Product issue (MEDIUM)": """Hi, I'm Tom Wilson. The export feature in the dashboard has been broken since last week's update. When I click "Export to CSV" nothing happens. I need this for my weekly reports. Can someone look into it?"""
+}
 
 # --- Agent functions ---
 
@@ -93,12 +106,21 @@ Classification:
 
 st.set_page_config(page_title="Ticket Triage Agent", page_icon="🎫", layout="wide")
 
+# Sidebar
+with st.sidebar:
+    st.header("📋 Sample Tickets")
+    st.caption("Click any sample to load it, or write your own.")
+    for label, text in SAMPLE_TICKETS.items():
+        if st.button(label, use_container_width=True):
+            st.session_state["ticket"] = text
+
 st.title("🎫 Support Ticket Triage Agent")
 st.markdown("Paste a customer support ticket below and watch the agent classify it, draft a response, and route it to the right team.")
 
 # Text input
 ticket_input = st.text_area(
     "Paste a support ticket:",
+    value=st.session_state.get("ticket", ""),
     height=150,
     placeholder="e.g. Hi, my name is Sarah Chen. I've been trying to log into my account..."
 )
@@ -116,7 +138,6 @@ if st.button("🚀 Triage This Ticket", type="primary"):
                 st.error(f"Classification failed: {classification}")
                 st.stop()
 
-            # Show classification results
             col1, col2, col3 = st.columns(3)
 
             urgency_colors = {"high": "🔴", "medium": "🟡", "low": "🟢"}
