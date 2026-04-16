@@ -25,25 +25,22 @@ The agent runs a two-step pipeline on every ticket:
 ![Ticket Triage Demo](demo.png)
 
 ## Architecture
-Raw Ticket (text input)
-│
-▼
-┌─────────────────┐
-│  CLASSIFIER      │  LLM call with structured JSON output
-│  (temperature=0.1)│  → category, urgency, entities, routing
-└────────┬─────────┘
-│
-▼
-┌─────────────────┐
-│  RESPONSE DRAFTER│  LLM call with classification context
-│  (temperature=0.4)│  → personalized customer reply
-└────────┬─────────┘
-│
-▼
-┌─────────────────┐
-│  ROUTING         │  Routes to correct team based on category
-│                  │  Flags urgency level for prioritization
-└──────────────────┘
+
+The agent follows a sequential two-step pipeline:
+
+**1. Classifier (temperature = 0.1)**
+- Input: Raw ticket text
+- LLM call with structured JSON output
+- Output: category, urgency, customer name, issue summary, routing destination
+
+**2. Response Drafter (temperature = 0.4)**
+- Input: Original ticket + classification data from Step 1
+- LLM call with classification context
+- Output: Personalised customer reply matched to urgency level
+
+**3. Router**
+- Routes ticket to the correct team based on category
+- Flags urgency level for prioritisation
 
 ## Design Decisions
 
@@ -74,12 +71,15 @@ streamlit run app.py
 ```
 
 ## Project Structure
-├── app.py              # Streamlit UI — the demo interface
-├── agent.py            # Core agent loop (classify → draft → route)
-├── classifier.py       # Standalone classifier with test cases
-├── hello_groq.py       # API connection test
-├── requirements.txt    # Python dependencies
-└── .env                # API key (not committed)
+
+| File | Purpose |
+|------|---------|
+| `app.py` | Streamlit UI — the demo interface |
+| `agent.py` | Core agent loop (classify → draft → route) |
+| `classifier.py` | Standalone classifier with test cases |
+| `hello_groq.py` | API connection test |
+| `requirements.txt` | Python dependencies |
+| `.env` | API key (not committed) |
 
 ## What I Would Build Next
 
